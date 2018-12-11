@@ -13,6 +13,8 @@
   "author": "Rumen Neshev <rstardev@abv.bg>",
   "license": "MIT",
   "dependencies": {
+    "@ionic/core": "^4.0.0-beta.17",
+    "@ionic/vue": "0.0.1",
     "register-service-worker": "^1.5.2",
     "rxjs": "^6.3.3",
     "vue": "^2.5.20",

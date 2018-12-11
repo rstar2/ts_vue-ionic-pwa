@@ -9,9 +9,9 @@ import App from '@/App.vue';
 // ]
 
 
-// import { Ionic } from '@ionic/vue';
+import Ionic from '@ionic/vue';
 
-// Vue.use(Ionic);
+Vue.use(Ionic);
 
 
 new Vue({
