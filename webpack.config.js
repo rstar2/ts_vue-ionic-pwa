@@ -3,9 +3,11 @@
 require('dotenv').config();
 
 const path = require('path');
-const fs = require('fs');
 const webpack = require('webpack');
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+const VueLoaderPlugin = require('vue-loader/lib/plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 // use the updated plugin because:
@@ -18,16 +20,10 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 // 'dotenv' wrapper - load the .env
 const Dotenv = require('dotenv-webpack');
 
-// Glob the entries dynamically/programmatically
-const mainFiles = require('glob').sync('./src/**/main.js');
-const entries = mainFiles.reduce((acc, mainFile) => {
-    const name = path.basename(path.dirname(mainFile));
-    acc[name] = mainFile;
-    return acc;
-}, {});
-
 module.exports = {
-    entry: entries,
+    entry: {
+        'main': './src/main.ts'
+    },
     output: {
         path: path.resolve(__dirname, './dist'),
         // publicPath: '/dist/',
@@ -35,14 +31,30 @@ module.exports = {
     },
     module: {
         rules: [
+            // typescript
+            {
+                test: /\.ts$/,
+                loader: 'ts-loader',
+                exclude: /node_modules/,
+                options: {
+                    appendTsSuffixTo: [/\.vue$/],
+                },
+            },
+
             {
                 test: /\.css$/,
-                use: ExtractTextPlugin.extract({
-                    fallback: 'style-loader',
-                    use: [
-                        'css-loader'
-                    ],
-                })
+                // use: ['style-loader', 'css-loader'],
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            // you can specify a publicPath here
+                            // by default it use publicPath in webpackOptions.output
+                            // publicPath: '../'
+                        }
+                    },
+                    'css-loader'
+                ]
             },
             {
                 test: /\.vue$/,
@@ -50,16 +62,11 @@ module.exports = {
                 options: {
                     loaders: {
                         'less': 'vue-style-loader!css-loader!less-loader',
-                        'scss': 'vue-style-loader!css-loader!sass-loader',
+                        // 'scss': 'vue-style-loader!css-loader!sass-loader',
                         // 'sass': 'vue-style-loader!css-loader!sass-loader?indentedSyntax',
                     }
                     // other vue-loader options go here
                 },
-            },
-            {
-                test: /\.js$/,
-                loader: 'babel-loader',
-                exclude: /node_modules/,
             },
             {
                 test: /\.(png|jpg|gif|svg)$/,
@@ -81,31 +88,29 @@ module.exports = {
     },
     resolve: {
         alias: {
-            'vue$': 'vue/dist/vue.esm.js'
+            'vue$': 'vue/dist/vue.esm.js',
+            '@': path.resolve('src'),
         },
-        extensions: ['*', '.js', '.vue', '.json'],
+        extensions: ['.ts', '.js', '.vue', '.json', '.css'],
     },
     resolveLoader: {
-        alias: {
-            'scss-loader': 'sass-loader',
-        },
-    },
-    devServer: {
-        // webpack output is served from /dist/
-        // publicPath: '/dist/',
-        // Content not from webpack is served from ./public, ./assets
-        // contentBase: [path.join(__dirname, 'public'), path.join(__dirname, 'assets')],
-
-        historyApiFallback: true,
-        noInfo: true,
-        overlay: true,
+        // alias: {
+        //     'scss-loader': 'sass-loader',
+        // },
     },
     performance: {
         hints: false,
     },
-    devtool: '#eval-source-map',
     plugins: [
-        new ExtractTextPlugin('build.[name].css'),
+        new CleanWebpackPlugin(['dist']),
+
+        new VueLoaderPlugin(),
+
+        new MiniCssExtractPlugin({
+            // Options similar to the same options in webpackOptions.output
+            // both options are optional
+            filename: 'build.[name].css',
+        }),
 
         new Dotenv({
             // path: './some.other.env', // load this now instead of the ones in '.env'
@@ -113,30 +118,22 @@ module.exports = {
             systemvars: true, // load all the predefined 'process.env' variables which will trump anything local per dotenv specs.
             // silent: true // hide any errors
         }),
+
+        new HtmlWebpackPlugin({
+            template: './src/index.html',
+            title: 'Vue Ionic PWA',
+            minify: {
+                collapseWhitespace: true,
+                minifyCSS: true,
+                removeComments: true
+            },
+        }),
     ],
 };
 
-module.exports.plugins = (module.exports.plugins || []).concat(
-    Object.keys(entries).map(function (id) {
-
-        const mainFile = entries[id];
-        let indexHtml = path.resolve(mainFile, '..', 'index.html');
-        if (!fs.existsSync(indexHtml)) {
-            indexHtml = './src/index.html';
-        }
-
-        return new HtmlWebpackPlugin({
-            chunks: ['common', id],
-            filename: id + '.html',
-            template: indexHtml,
-            title: entries[id]
-        });
-    })
-);
-
-
 if (process.env.NODE_ENV === 'production') {
-    module.exports.devtool = '#source-map';
+    module.exports.mode = 'production';
+    module.exports.devtool = 'source-map';
     // http://vue-loader.vuejs.org/en/workflow/production.html
     module.exports.plugins = (module.exports.plugins || []).concat([
         // this old version of the plugin cannot minify ES6
@@ -149,12 +146,25 @@ if (process.env.NODE_ENV === 'production') {
         // }),
         new UglifyJsPlugin({
             sourceMap: true,
-
         }),
 
         new webpack.LoaderOptionsPlugin({
             minimize: true,
         }),
     ]);
+} else {
+    module.exports.mode = 'development';
+    module.exports.devtool = 'inline-source-map';
+    module.exports.devServer = {
+        contentBase: './dist',
+        // webpack output is served from /dist/
+        // publicPath: '/dist/',
+        // Content not from webpack is served from ./public, ./assets
+        // contentBase: [path.join(__dirname, 'public'), path.join(__dirname, 'assets')],
 
+        historyApiFallback: true,
+        noInfo: true,
+        overlay: true,
+    };
 }
+
