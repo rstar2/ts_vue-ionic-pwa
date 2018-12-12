@@ -8,10 +8,8 @@ import Vue from 'vue';
 // ]
 
 
-import Ionic from '@ionic/vue';
-
-
-Vue.use(Ionic);
+// import Ionic from '@ionic/vue';
+// Vue.use(Ionic);
 
 import App from '@/App.vue';
 
