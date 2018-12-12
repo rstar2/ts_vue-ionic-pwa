@@ -1,5 +1,4 @@
 import Vue from 'vue';
-import App from '@/App.vue';
 // for the VSCode TypeScript error try adding installing 'vue-ts-plugin' ($ npm i - D vue-ts-plugin)
 // and adding it in tsconfig.json:
 // "plugins": [
@@ -11,7 +10,10 @@ import App from '@/App.vue';
 
 import Ionic from '@ionic/vue';
 
+
 Vue.use(Ionic);
+
+import App from '@/App.vue';
 
 
 new Vue({

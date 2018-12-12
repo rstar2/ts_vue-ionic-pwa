@@ -1,5 +1,12 @@
 <template>
-  <div>Hello {{name}}!</div>
+  <!-- <ion-content>
+    <ion-refresher slot="fixed" @ionRefresh="doRefresh($event)">
+      <ion-refresher-content :refreshingSpinner="spinner" :refreshingText="greeting">
+        <div>Hello {{name}}!</div> -->
+        <button @click="showModal">Load</button>
+      <!-- </ion-refresher-content>
+    </ion-refresher>
+  </ion-content> -->
 </template>
 
 <script  lang="ts">
@@ -8,7 +15,8 @@ import Vue from "vue";
 export default Vue.extend({
   data(): any {
     return {
-      name: "World"
+      name: "World",
+      spinner: "asd"
     };
   },
   mounted(): void {
@@ -21,16 +29,18 @@ export default Vue.extend({
     }
   },
   methods: {
-    // async showModal(): Promise<any> {
-    //   const loading = await this.$ionic.loadingController.create({
-    //     spinner: "hide",
-    //     duration: 5000,
-    //     message: "Please wait...",
-    //     translucent: true,
-    //     cssClass: "custom-class custom-loading"
-    //   });
-    //   loading.present();
-    // }
+    doRefresh() {},
+
+    async showModal(): Promise<any> {
+      const loading = await this.$ionic.loadingController.create({
+        spinner: "hide",
+        duration: 5000,
+        message: "Please wait...",
+        translucent: true,
+        cssClass: "custom-class custom-loading"
+      });
+      loading.present();
+    }
   }
 });
 </script>
